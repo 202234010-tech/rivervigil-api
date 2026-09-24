@@ -1,0 +1,253 @@
+{
+  "info": {
+    "_postman_id": "c4b8e21a-7b3f-42a0-9c12-ef472c918231",
+    "name": "Minggu 2 — Eksplorasi HTTP",
+    "description": "Collection untuk Praktikum 2 — Eksplorasi HTTP dengan Postman.\n\nMemuat:\n1. 01 Request Anatomy (Query Parameters, Headers, Post-response Tests)\n2. 02 Status Codes (200, 400, 404, 429 Status Tests)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "01 Request Anatomy",
+      "item": [
+        {
+          "name": "GET Echo Query Parameters",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{echo_base_url}}/get?search=laravel api&page=2",
+              "host": [
+                "{{echo_base_url}}"
+              ],
+              "path": [
+                "get"
+              ],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "laravel api",
+                  "description": "Query parameter pencarian"
+                },
+                {
+                  "key": "page",
+                  "value": "2",
+                  "description": "Nomor halaman"
+                }
+              ]
+            },
+            "description": "Request GET untuk mengeksplorasi penerimaan Query Parameters pada endpoint Echo API."
+          },
+          "response": []
+        },
+        {
+          "name": "GET Echo Custom Header",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response is JSON\", function () {",
+                  "    pm.response.to.be.json;",
+                  "});",
+                  "",
+                  "pm.test(\"Custom header was received\", function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body.headers[\"x-student-client\"]).to.eql(\"postman-week-2\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "X-Student-Client",
+                "value": "postman-week-2",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{echo_base_url}}/get?search=laravel api&page=2",
+              "host": [
+                "{{echo_base_url}}"
+              ],
+              "path": [
+                "get"
+              ],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "laravel api"
+                },
+                {
+                  "key": "page",
+                  "value": "2"
+                }
+              ]
+            },
+            "description": "Request GET dengan custom header Accept dan X-Student-Client beserta post-response script untuk pengujian otomatis."
+          },
+          "response": []
+        }
+      ],
+      "description": "Folder berisi request untuk mempelajari anatomi HTTP request: query parameters dan custom headers."
+    },
+    {
+      "name": "02 Status Codes",
+      "item": [
+        {
+          "name": "Success",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{status_base_url}}/status/200",
+              "host": [
+                "{{status_base_url}}"
+              ],
+              "path": [
+                "status",
+                "200"
+              ]
+            },
+            "description": "Endpoint simulasi HTTP 200 OK."
+          },
+          "response": []
+        },
+        {
+          "name": "Bad Request",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 400\", function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{status_base_url}}/status/400",
+              "host": [
+                "{{status_base_url}}"
+              ],
+              "path": [
+                "status",
+                "400"
+              ]
+            },
+            "description": "Endpoint simulasi HTTP 400 Bad Request."
+          },
+          "response": []
+        },
+        {
+          "name": "Not Found",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 404\", function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{status_base_url}}/status/404",
+              "host": [
+                "{{status_base_url}}"
+              ],
+              "path": [
+                "status",
+                "404"
+              ]
+            },
+            "description": "Endpoint simulasi HTTP 404 Not Found."
+          },
+          "response": []
+        },
+        {
+          "name": "Too Many Requests",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 429\", function () {",
+                  "    pm.response.to.have.status(429);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{status_base_url}}/status/429",
+              "host": [
+                "{{status_base_url}}"
+              ],
+              "path": [
+                "status",
+                "429"
+              ]
+            },
+            "description": "Endpoint simulasi HTTP 429 Too Many Requests (Rate Limit simulation)."
+          },
+          "response": []
+        }
+      ],
+      "description": "Folder berisi request untuk mempelajari berbagai HTTP Status Code (200, 400, 404, 429)."
+    }
+  ],
+  "variable": [
+    {
+      "key": "echo_base_url",
+      "value": "https://postman-echo.com",
+      "type": "string"
+    },
+    {
+      "key": "status_base_url",
+      "value": "https://httpbin.org",
+      "type": "string"
+    }
+  ]
+}

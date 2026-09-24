@@ -1,0 +1,12 @@
+$kind: http-request
+description: Endpoint simulasi HTTP 429 Too Many Requests (Rate Limit simulation).
+url: "{{status_base_url}}/status/429"
+method: GET
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Status code is 429", function () {
+          pm.response.to.have.status(429);
+      });
+    language: text/javascript
+order: 4000

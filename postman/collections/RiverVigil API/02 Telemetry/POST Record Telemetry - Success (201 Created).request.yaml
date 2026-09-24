@@ -1,0 +1,33 @@
+$kind: http-request
+description: Menguji pengiriman payload telemetri valid dan pembuatan entitas baru (201 Created).
+url: "{{base_url}}/api/v1/telemetry"
+method: POST
+headers:
+  Accept: application/json
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "station_id": "STA-KATULAMPA",
+      "water_level_cm": 125,
+      "flow_rate_m3s": 58.4,
+      "rainfall_intensity_mmh": 22.5,
+      "recorded_at": "2026-09-24T13:45:00+07:00"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Status code is 201 Created", function () {
+          pm.response.to.have.status(201);
+      });
+
+      pm.test("Telemetry successfully registered", function () {
+          const jsonData = pm.response.json();
+          pm.expect(jsonData.status).to.eql("success");
+          pm.expect(jsonData.data).to.have.property("telemetry_id");
+          pm.expect(jsonData.data.station_id).to.eql("STA-KATULAMPA");
+          pm.expect(jsonData.data.calculated_alert).to.eql("siaga_3");
+      });
+    language: text/javascript
+order: 1000

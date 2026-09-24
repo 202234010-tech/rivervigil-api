@@ -1,0 +1,3 @@
+$kind: collection
+description: "Folder berisi request untuk mempelajari anatomi HTTP request: query parameters dan custom headers."
+order: 1000

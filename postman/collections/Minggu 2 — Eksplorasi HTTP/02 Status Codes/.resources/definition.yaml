@@ -1,0 +1,3 @@
+$kind: collection
+description: Folder berisi request untuk mempelajari berbagai HTTP Status Code (200, 400, 404, 429).
+order: 2000

@@ -1,0 +1,21 @@
+$kind: http-request
+description: Menguji penanganan error ketika Station ID tidak terdaftar di sistem.
+url: "{{base_url}}/api/v1/stations/STA-UNKNOWN"
+method: GET
+headers:
+  Accept: application/json
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Status code is 404 Not Found", function () {
+          pm.response.to.have.status(404);
+      });
+
+      pm.test("Error envelope structure is returned", function () {
+          const jsonData = pm.response.json();
+          pm.expect(jsonData.status).to.eql("error");
+          pm.expect(jsonData).to.have.property("errors");
+          pm.expect(jsonData.errors[0].field).to.eql("id");
+      });
+    language: text/javascript
+order: 3000

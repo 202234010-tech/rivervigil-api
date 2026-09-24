@@ -1,0 +1,415 @@
+{
+  "info": {
+    "_postman_id": "7f8b91a2-3c4d-4e5f-b6a7-890123456789",
+    "name": "RiverVigil API — Minggu 2 Eksplorasi HTTP & Contract",
+    "description": "Postman Collection pengujian HTTP, REST, JSON, Status Codes, dan API Contract untuk Project Semester 'RiverVigil API' (Disaster Early Warning & River Telemetry System).\n\nMencakup:\n1. 01 Stations (200 OK & 404 Not Found)\n2. 02 Telemetry (201 Created, 422 Unprocessable Content, 400 Bad Request)\n3. 03 Alerts (200 OK Active Alerts)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "01 Stations",
+      "item": [
+        {
+          "name": "GET All Stations with Query Params",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response is valid JSON\", function () {",
+                  "    pm.response.to.be.json;",
+                  "});",
+                  "",
+                  "pm.test(\"Response envelope status is success\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.status).to.eql(\"success\");",
+                  "    pm.expect(jsonData.data).to.be.an(\"array\");",
+                  "});",
+                  "",
+                  "pm.test(\"Query parameter filtering is respected\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.meta.page).to.eql(1);",
+                  "    jsonData.data.forEach(function(station) {",
+                  "        pm.expect(station.river_basin).to.eql(\"ciliwung\");",
+                  "    });",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/stations?river_basin=ciliwung&page=1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "stations"
+              ],
+              "query": [
+                {
+                  "key": "river_basin",
+                  "value": "ciliwung",
+                  "description": "Filter Daerah Aliran Sungai"
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Halaman data"
+                }
+              ]
+            },
+            "description": "Mengambil seluruh daftar stasiun pos pantau dengan filter query parameters."
+          },
+          "response": []
+        },
+        {
+          "name": "GET Station by ID - Success (200 OK)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Station ID matches requested parameter\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.id).to.eql(\"STA-KATULAMPA\");",
+                  "    pm.expect(jsonData.data.name).to.eql(\"Bendung Katulampa\");",
+                  "});",
+                  "",
+                  "pm.test(\"Threshold structure is present\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.thresholds_cm).to.have.property(\"siaga_1\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/stations/STA-KATULAMPA",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "stations",
+                "STA-KATULAMPA"
+              ]
+            },
+            "description": "Mengambil detail stasiun pos pantau Bendung Katulampa (skenario berhasil)."
+          },
+          "response": []
+        },
+        {
+          "name": "GET Station by ID - Not Found (404 Not Found)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 404 Not Found\", function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "",
+                  "pm.test(\"Error envelope structure is returned\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.status).to.eql(\"error\");",
+                  "    pm.expect(jsonData.errors).to.be.an(\"array\");",
+                  "    pm.expect(jsonData.errors[0].field).to.eql(\"id\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/stations/STA-UNKNOWN",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "stations",
+                "STA-UNKNOWN"
+              ]
+            },
+            "description": "Pengujian stasiun tidak terdaftar untuk memverifikasi respons error 404."
+          },
+          "response": []
+        }
+      ],
+      "description": "Folder untuk endpoint entitas Stasiun Pos Pantau Sungai."
+    },
+    {
+      "name": "02 Telemetry",
+      "item": [
+        {
+          "name": "POST Record Telemetry - Success (201 Created)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201 Created\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test(\"Telemetry successfully registered\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.status).to.eql(\"success\");",
+                  "    pm.expect(jsonData.data).to.have.property(\"telemetry_id\");",
+                  "    pm.expect(jsonData.data.station_id).to.eql(\"STA-KATULAMPA\");",
+                  "    pm.expect(jsonData.data.water_level_cm).to.eql(125);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"station_id\": \"STA-KATULAMPA\",\n  \"water_level_cm\": 125,\n  \"flow_rate_m3s\": 58.4,\n  \"rainfall_intensity_mmh\": 22.5,\n  \"recorded_at\": \"2026-09-21T22:35:00+07:00\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/telemetry",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "telemetry"
+              ]
+            },
+            "description": "Mengirimkan data pembacaan sensor telemetri valid yang menghasilkan status 201 Created."
+          },
+          "response": []
+        },
+        {
+          "name": "POST Record Telemetry - Validation Error (422 Unprocessable Content)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 422 Unprocessable Content\", function () {",
+                  "    pm.response.to.have.status(422);",
+                  "});",
+                  "",
+                  "pm.test(\"Validation error list matches contract\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.status).to.eql(\"error\");",
+                  "    pm.expect(jsonData.errors).to.be.an(\"array\");",
+                  "    const fields = jsonData.errors.map(e => e.field);",
+                  "    pm.expect(fields).to.include(\"water_level_cm\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"station_id\": \"STA-KATULAMPA\",\n  \"water_level_cm\": -15,\n  \"flow_rate_m3s\": -5,\n  \"recorded_at\": \"2026-09-21T22:35:00+07:00\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/telemetry",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "telemetry"
+              ]
+            },
+            "description": "Mengirimkan payload telemetri dengan nilai negatif tidak valid untuk memverifikasi status 422 Unprocessable Content."
+          },
+          "response": []
+        },
+        {
+          "name": "POST Record Telemetry - Malformed JSON (400 Bad Request)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 400 Bad Request\", function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test(\"Malformed JSON error returned\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.status).to.eql(\"error\");",
+                  "    pm.expect(jsonData.errors[0].field).to.eql(\"payload\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{ broken_json_payload : 123 "
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/telemetry",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "telemetry"
+              ]
+            },
+            "description": "Mengirimkan sintaks JSON rusak untuk memverifikasi respons error 400 Bad Request."
+          },
+          "response": []
+        }
+      ],
+      "description": "Folder pengujian ingesti data sensor telemetri (sukses & validasi gagal)."
+    },
+    {
+      "name": "03 Alerts",
+      "item": [
+        {
+          "name": "GET Active Early Warning Alerts (200 OK)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Active alerts data returned as array\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.status).to.eql(\"success\");",
+                  "    pm.expect(jsonData.data).to.be.an(\"array\");",
+                  "    pm.expect(jsonData.data.length).to.be.greaterThan(0);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/alerts/active",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "alerts",
+                "active"
+              ]
+            },
+            "description": "Mengambil seluruh peringatan dini aktif (Siaga 1 - Siaga 3)."
+          },
+          "response": []
+        }
+      ],
+      "description": "Folder untuk endpoint peringatan dini (early warning alerts)."
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:8000",
+      "type": "string"
+    }
+  ]
+}

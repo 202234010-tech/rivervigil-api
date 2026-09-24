@@ -1,0 +1,35 @@
+$kind: http-request
+description: Mengambil seluruh daftar stasiun pos pantau dengan filter query parameters.
+url: "{{base_url}}/api/v1/stations?river_basin=ciliwung&page=1"
+method: GET
+headers:
+  Accept: application/json
+queryParams:
+  river_basin: ciliwung
+  page: "1"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Status code is 200 OK", function () {
+          pm.response.to.have.status(200);
+      });
+
+      pm.test("Response is valid JSON", function () {
+          pm.response.to.be.json;
+      });
+
+      pm.test("Response envelope status is success", function () {
+          const jsonData = pm.response.json();
+          pm.expect(jsonData.status).to.eql("success");
+          pm.expect(jsonData.data).to.be.an("array");
+      });
+
+      pm.test("Query parameter filtering is respected", function () {
+          const jsonData = pm.response.json();
+          pm.expect(jsonData.meta.page).to.eql(1);
+          jsonData.data.forEach(function(station) {
+              pm.expect(station.river_basin).to.eql("ciliwung");
+          });
+      });
+    language: text/javascript
+order: 1000

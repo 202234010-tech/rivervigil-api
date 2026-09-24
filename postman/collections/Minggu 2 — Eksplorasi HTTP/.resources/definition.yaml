@@ -1,0 +1,10 @@
+$kind: collection
+description: |-
+  Collection untuk Praktikum 2 — Eksplorasi HTTP dengan Postman.
+
+  Memuat:
+  1. 01 Request Anatomy (Query Parameters, Headers, Post-response Tests)
+  2. 02 Status Codes (200, 400, 404, 429 Status Tests)
+variables:
+  echo_base_url: https://postman-echo.com
+  status_base_url: https://httpbin.org

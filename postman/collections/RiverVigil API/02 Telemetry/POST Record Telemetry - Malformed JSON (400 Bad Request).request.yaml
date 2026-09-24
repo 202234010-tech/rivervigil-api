@@ -1,0 +1,25 @@
+$kind: http-request
+description: Menguji penolakan ketika payload bukan format JSON yang valid (400 Bad Request).
+url: "{{base_url}}/api/v1/telemetry"
+method: POST
+headers:
+  Accept: application/json
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    { broken_json_payload : 123
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Status code is 400 Bad Request", function () {
+          pm.response.to.have.status(400);
+      });
+
+      pm.test("Malformed JSON error returned", function () {
+          const jsonData = pm.response.json();
+          pm.expect(jsonData.status).to.eql("error");
+          pm.expect(jsonData.errors[0].field).to.eql("payload");
+      });
+    language: text/javascript
+order: 3000

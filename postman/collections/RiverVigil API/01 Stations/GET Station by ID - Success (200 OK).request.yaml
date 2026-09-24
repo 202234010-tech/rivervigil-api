@@ -1,0 +1,26 @@
+$kind: http-request
+description: Mengambil detail spesifik stasiun pos pantau berdasarkan Station ID.
+url: "{{base_url}}/api/v1/stations/STA-KATULAMPA"
+method: GET
+headers:
+  Accept: application/json
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Status code is 200 OK", function () {
+          pm.response.to.have.status(200);
+      });
+
+      pm.test("Station ID matches requested parameter", function () {
+          const jsonData = pm.response.json();
+          pm.expect(jsonData.data.id).to.eql("STA-KATULAMPA");
+          pm.expect(jsonData.data.name).to.eql("Bendung Katulampa");
+      });
+
+      pm.test("Threshold structure is present", function () {
+          const jsonData = pm.response.json();
+          pm.expect(jsonData.data.thresholds_cm).to.have.property("siaga_1");
+          pm.expect(jsonData.data.thresholds_cm).to.have.property("normal");
+      });
+    language: text/javascript
+order: 2000

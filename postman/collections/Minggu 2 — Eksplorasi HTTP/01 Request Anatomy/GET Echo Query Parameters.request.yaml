@@ -1,0 +1,12 @@
+$kind: http-request
+description: Request GET untuk mengeksplorasi penerimaan Query Parameters pada endpoint Echo API.
+url: "{{echo_base_url}}/get?search=laravel api&page=2"
+method: GET
+queryParams:
+  - key: search
+    value: laravel api
+    description: Query parameter pencarian
+  - key: page
+    value: "2"
+    description: Nomor halaman
+order: 1000

@@ -1,0 +1,31 @@
+$kind: http-request
+description: Menguji kegagalan validasi logika domain (422 Unprocessable Content).
+url: "{{base_url}}/api/v1/telemetry"
+method: POST
+headers:
+  Accept: application/json
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "station_id": "STA-KATULAMPA",
+      "water_level_cm": -15,
+      "flow_rate_m3s": -5,
+      "recorded_at": "2026-09-24T13:45:00+07:00"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Status code is 422 Unprocessable Content", function () {
+          pm.response.to.have.status(422);
+      });
+
+      pm.test("Validation error list matches contract", function () {
+          const jsonData = pm.response.json();
+          pm.expect(jsonData.status).to.eql("error");
+          pm.expect(jsonData).to.have.property("errors");
+          pm.expect(jsonData.errors.length).to.be.above(0);
+      });
+    language: text/javascript
+order: 2000
