@@ -1,0 +1,570 @@
+{
+  "info": {
+    "_postman_id": "8a1c2d3e-4f5b-6a7c-8d9e-0123456789ab",
+    "name": "Praktikum 3 — Merancang API Contract (RiverVigil API)",
+    "description": "Postman Collection resmi untuk Praktikum 3 — Merancang API Contract pada mata kuliah Manajemen Layanan Web.\n\nMenguji:\n1. Pemetaan Kebutuhan menjadi Resource REST (Stations, Telemetry, Alerts, Shelters, Reports)\n2. Verifikasi HTTP Method & Semantik Status Codes (200, 201, 400, 404, 422)\n3. Standarisasi Envelope Response JSON (status, message, data, errors, meta)\n4. Kepatuhan Zero-Credential & Keamanan Sistem",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "01 Resource Stations",
+      "item": [
+        {
+          "name": "GET All Stations with Query Params (200 OK)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Response has success envelope\", function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.status).to.eql(\"success\");",
+                  "    pm.expect(json.data).to.be.an(\"array\");",
+                  "    pm.expect(json.meta).to.be.an(\"object\");",
+                  "});",
+                  "pm.test(\"Filtering by river_basin is applied\", function () {",
+                  "    var json = pm.response.json();",
+                  "    json.data.forEach(function(st) {",
+                  "        pm.expect(st.river_basin).to.eql(\"ciliwung\");",
+                  "    });",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/stations?river_basin=ciliwung&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "stations"],
+              "query": [
+                {
+                  "key": "river_basin",
+                  "value": "ciliwung"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST Register New Station (201 Created)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201 Created\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.test(\"Station data created with ID\", function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.status).to.eql(\"success\");",
+                  "    pm.expect(json.data.id).to.eql(\"STA-BEKASI-TEST\");",
+                  "    pm.expect(json.data.thresholds_cm).to.be.an(\"object\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"STA-BEKASI-TEST\",\n  \"name\": \"Pos Pantau Kali Bekasi Hilir\",\n  \"river_basin\": \"bekasi\",\n  \"location\": \"Kota Bekasi, Jawa Barat\",\n  \"current_level_cm\": 95.0,\n  \"flow_rate_m3s\": 34.0,\n  \"thresholds_cm\": {\n    \"normal\": 100,\n    \"siaga_3\": 200,\n    \"siaga_2\": 300,\n    \"siaga_1\": 400\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/stations",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "stations"]
+            }
+          }
+        },
+        {
+          "name": "GET Station by ID - Success (200 OK)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Station ID matches request\", function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.data.id).to.eql(\"STA-KATULAMPA\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/stations/STA-KATULAMPA",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "stations", "STA-KATULAMPA"]
+            }
+          }
+        },
+        {
+          "name": "GET Station by ID - Not Found (404 Not Found)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 404 Not Found\", function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "pm.test(\"Error envelope contains details\", function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.status).to.eql(\"error\");",
+                  "    pm.expect(json.errors).to.be.an(\"array\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/stations/STA-UNKNOWN",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "stations", "STA-UNKNOWN"]
+            }
+          }
+        },
+        {
+          "name": "GET Station Telemetry Sub-resource (200 OK)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Sub-resource returns logs array\", function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.status).to.eql(\"success\");",
+                  "    pm.expect(json.data).to.be.an(\"array\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/stations/STA-KATULAMPA/telemetry",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "stations", "STA-KATULAMPA", "telemetry"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 Resource Telemetry",
+      "item": [
+        {
+          "name": "POST Telemetry - Success (201 Created)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201 Created\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.test(\"Telemetry ID generated and alert calculated\", function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.data.telemetry_id).to.include(\"TLM-\");",
+                  "    pm.expect(json.data.calculated_alert).to.be.oneOf([\"normal\", \"siaga_3\", \"siaga_2\", \"siaga_1\"]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"station_id\": \"STA-KATULAMPA\",\n  \"water_level_cm\": 145.5,\n  \"flow_rate_m3s\": 68.4,\n  \"rainfall_intensity_mmh\": 32.0,\n  \"recorded_at\": \"2026-09-25T11:00:00+07:00\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/telemetry",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "telemetry"]
+            }
+          }
+        },
+        {
+          "name": "POST Telemetry - Malformed JSON (400 Bad Request)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 400 Bad Request\", function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test(\"Error indicates malformed JSON\", function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.status).to.eql(\"error\");",
+                  "    pm.expect(json.errors[0].field).to.eql(\"payload\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"station_id\": \"STA-KATULAMPA\", \"water_level_cm\": 145.5, INVALID_BODY"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/telemetry",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "telemetry"]
+            }
+          }
+        },
+        {
+          "name": "POST Telemetry - Validation Error (422 Unprocessable)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 422 Unprocessable Content\", function () {",
+                  "    pm.response.to.have.status(422);",
+                  "});",
+                  "pm.test(\"Errors array specifies invalid fields\", function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.status).to.eql(\"error\");",
+                  "    pm.expect(json.errors.length).to.be.above(0);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"station_id\": \"STA-KATULAMPA\",\n  \"water_level_cm\": \"invalid_data_type\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/telemetry",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "telemetry"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 Resource Alerts",
+      "item": [
+        {
+          "name": "GET Active Early Warning Alerts (200 OK)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Alerts data returned as array\", function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.data).to.be.an(\"array\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/alerts/active",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "alerts", "active"]
+            }
+          }
+        },
+        {
+          "name": "PATCH Resolve Alert (200 OK)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Alert status changed to resolved\", function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.data.status).to.eql(\"resolved\");",
+                  "    pm.expect(json.data.resolved_at).to.not.be.null;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/alerts/ALT-20260925-01/resolve",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "alerts", "ALT-20260925-01", "resolve"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 Resource Shelters and Reports",
+      "item": [
+        {
+          "name": "GET Evacuation Shelters (200 OK)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Shelters list contains capacity information\", function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.data[0].capacity_people).to.be.above(0);",
+                  "    pm.expect(json.data[0].facilities).to.be.an(\"array\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/shelters",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "shelters"]
+            }
+          }
+        },
+        {
+          "name": "POST Citizen Flood Report (201 Created)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201 Created\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.test(\"Report ID generated\", function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.data.report_id).to.include(\"REP-\");",
+                  "    pm.expect(json.data.status).to.eql(\"pending_verification\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reporter_name\": \"Rian Hidayat\",\n  \"reporter_phone\": \"081399887766\",\n  \"location_name\": \"Kampung Melayu RW 02\",\n  \"inundation_height_cm\": 65.0,\n  \"notes\": \"Genangan air naik pesat di jalan utama\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/reports",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "reports"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 Fallback Route Error",
+      "item": [
+        {
+          "name": "Route Fallback - Not Found (404 Not Found)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 404 Not Found\", function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "pm.test(\"Error envelope received\", function () {",
+                  "    var json = pm.response.json();",
+                  "    pm.expect(json.status).to.eql(\"error\");",
+                  "    pm.expect(json.errors[0].field).to.eql(\"path\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/non-existent-route",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "non-existent-route"]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:8000"
+    }
+  ]
+}
