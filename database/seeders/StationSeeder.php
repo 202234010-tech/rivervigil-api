@@ -9,7 +9,7 @@ class StationSeeder extends Seeder
 {
     public function run(): void
     {
-        DB::table('stations')->insert([
+        DB::table('stations')->upsert([
             [
                 'id' => 'STA-KATULAMPA',
                 'name' => 'Bendung Katulampa',
@@ -44,6 +44,6 @@ class StationSeeder extends Seeder
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
-        ]);
+        ], ['id']);
     }
 }
