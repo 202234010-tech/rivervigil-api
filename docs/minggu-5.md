@@ -8,7 +8,7 @@
 - **Resource Utama Terpilih:** `Station` (`stations`) — Pos Pantau Muka Air Sungai & Banjir
 - **Base URL:** `http://127.0.0.1:8000/api` dan `http://127.0.0.1:8000/api/v1`
 - **Repositori GitHub:** [https://github.com/202234010-tech/rivervigil-api](https://github.com/202234010-tech/rivervigil-api)
-- **Tautan Commit Evidence:** *(Akan dicatat setelah commit git)*
+- **Tautan Commit Evidence:** [Commit `76b0432`](https://github.com/202234010-tech/rivervigil-api/commit/76b0432)
 - **Postman Collection:** `docs/postman/rivervigil-api.postman_collection.json`
 
 ---
