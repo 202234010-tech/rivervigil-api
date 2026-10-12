@@ -222,6 +222,168 @@
               "path": ["api", "v1", "stations", "STA-KATULAMPA", "telemetry"]
             }
           }
+        },
+        {
+          "name": "PATCH Update Station (200 OK)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Station updated successfully\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.status).to.eql(\"success\");",
+                  "    pm.expect(jsonData.data.current_level_cm).to.eql(140.5);",
+                  "    pm.expect(jsonData.data.alert_status).to.eql(\"siaga_3\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"current_level_cm\": 140.5,\n  \"alert_status\": \"siaga_3\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/stations/STA-KATULAMPA",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "stations", "STA-KATULAMPA"]
+            }
+          }
+        },
+        {
+          "name": "POST Create Station - Validation Error (422 Unprocessable Content)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 422 Unprocessable Content\", function () {",
+                  "    pm.response.to.have.status(422);",
+                  "});",
+                  "pm.test(\"Validation error envelope returned\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.status).to.eql(\"error\");",
+                  "    pm.expect(jsonData.errors).to.be.an(\"array\");",
+                  "    pm.expect(jsonData.errors[0]).to.have.property(\"field\");",
+                  "    pm.expect(jsonData.errors[0]).to.have.property(\"issue\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"STA-KATULAMPA\",\n  \"name\": \"\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/stations",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "stations"]
+            }
+          }
+        },
+        {
+          "name": "DELETE Station (204 No Content)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 204 No Content\", function () {",
+                  "    pm.response.to.have.status(204);",
+                  "});",
+                  "pm.test(\"Response body is empty\", function () {",
+                  "    pm.expect(pm.response.text()).to.eql(\"\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/stations/STA-BEKASI",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "stations", "STA-BEKASI"]
+            }
+          }
+        },
+        {
+          "name": "GET Station after Delete (404 Not Found)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 404 Not Found\", function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "pm.test(\"Error envelope confirmed\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.status).to.eql(\"error\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/stations/STA-BEKASI",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "stations", "STA-BEKASI"]
+            }
+          }
         }
       ]
     },

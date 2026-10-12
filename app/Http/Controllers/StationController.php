@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreStationRequest;
+use App\Http\Requests\UpdateStationRequest;
+use App\Http\Resources\StationResource;
 use App\Models\Station;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -24,13 +27,12 @@ class StationController extends Controller
 
         $stations = $query
             ->orderBy('id')
-            ->get()
-            ->map(fn (Station $station): array => $this->stationData($station));
+            ->get();
 
         return response()->json([
             'status' => 'success',
             'message' => 'Daftar stasiun pos pantau berhasil diambil.',
-            'data' => $stations,
+            'data' => StationResource::collection($stations),
             'meta' => [
                 'page' => (int) $request->query('page', 1),
                 'limit' => (int) $request->query('limit', 10),
@@ -39,44 +41,73 @@ class StationController extends Controller
         ]);
     }
 
+    public function store(StoreStationRequest $request): JsonResponse
+    {
+        $station = Station::create($request->validated());
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Pos pantau stasiun sungai baru berhasil didaftarkan.',
+            'data' => new StationResource($station),
+        ], 201);
+    }
+
     public function show(string $station): JsonResponse
     {
         $stationModel = Station::find($station);
 
         if ($stationModel === null) {
-            return response()->json([
-                'status' => 'error',
-                'message' => "Stasiun pos pantau dengan ID '{$station}' tidak ditemukan.",
-                'errors' => [
-                    [
-                        'field' => 'id',
-                        'issue' => 'Resource station tidak ada dalam basis data.',
-                    ],
-                ],
-            ], 404);
+            return $this->notFound($station);
         }
 
         return response()->json([
             'status' => 'success',
             'message' => 'Detail stasiun pos pantau ditemukan.',
-            'data' => $this->stationData($stationModel),
+            'data' => new StationResource($stationModel),
         ]);
     }
 
-    private function stationData(Station $station): array
+    public function update(UpdateStationRequest $request, string $station): JsonResponse
     {
-        return [
-            'id' => (string) $station->id,
-            'name' => (string) $station->name,
-            'river_basin' => (string) $station->river_basin,
-            'location' => (string) $station->location,
-            'current_level_cm' => (float) $station->current_level_cm,
-            'flow_rate_m3s' => (float) $station->flow_rate_m3s,
-            'alert_status' => (string) $station->alert_status,
-            'thresholds_cm' => is_array($station->thresholds_cm)
-                ? $station->thresholds_cm
-                : json_decode((string) $station->thresholds_cm, true),
-            'updated_at' => $station->updated_at?->toISOString(),
-        ];
+        $stationModel = Station::find($station);
+
+        if ($stationModel === null) {
+            return $this->notFound($station);
+        }
+
+        $stationModel->update($request->validated());
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Data stasiun pos pantau berhasil diperbarui.',
+            'data' => new StationResource($stationModel->refresh()),
+        ], 200);
+    }
+
+    public function destroy(string $station): JsonResponse
+    {
+        $stationModel = Station::find($station);
+
+        if ($stationModel === null) {
+            return $this->notFound($station);
+        }
+
+        $stationModel->delete();
+
+        return response()->json(null, 204);
+    }
+
+    private function notFound(string $station): JsonResponse
+    {
+        return response()->json([
+            'status' => 'error',
+            'message' => "Stasiun pos pantau dengan ID '{$station}' tidak ditemukan.",
+            'errors' => [
+                [
+                    'field' => 'id',
+                    'issue' => 'Resource station tidak ada dalam basis data.',
+                ],
+            ],
+        ], 404);
     }
 }
