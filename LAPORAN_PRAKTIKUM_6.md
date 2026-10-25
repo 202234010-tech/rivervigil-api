@@ -7,7 +7,7 @@
 **Versi API:** `v1.3.0`  
 **Base URL:** `http://127.0.0.1:8000/api`  
 **Repositori GitHub:** [https://github.com/202234010-tech/rivervigil-api](https://github.com/202234010-tech/rivervigil-api)  
-**Tautan Commit Terkait:** [Commit `298139e`](https://github.com/202234010-tech/rivervigil-api/commit/298139e)  
+**Tautan Commit Terkait:** [Commit `80301c9`](https://github.com/202234010-tech/rivervigil-api/commit/80301c9)  
 **Waktu Praktikum:** 120 menit  
 
 ---
