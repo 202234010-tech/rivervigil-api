@@ -1,0 +1,542 @@
+{
+  "info": {
+    "_postman_id": "f86b4321-4821-4d1a-8bb0-c11223344556",
+    "name": "Praktikum 6 — Endpoint Collection yang Dapat Dicari (Books API)",
+    "description": "Postman Collection resmi untuk Praktikum 6 — Endpoint Collection yang Dapat Dicari pada mata kuliah Manajemen Layanan Web.\n\nMenguji:\n1. Paginasi default dan custom per_page / page\n2. Pencarian pada kolom title dan isbn\n3. Pengurutan terarah (asc/desc) dengan allowlist kolom (id, title, isbn, created_at)\n4. Validasi query parameter (422 Unprocessable Content untuk sort dan per_page invalid)\n5. HATEOAS links dan metadata paginasi yang mempertahankan query string",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:8000",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "01 - Week 6 — Paginated Books (Page 1)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Response has data, links, and meta structure\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('data');",
+              "    pm.expect(jsonData).to.have.property('links');",
+              "    pm.expect(jsonData).to.have.property('meta');",
+              "    pm.expect(jsonData.meta.current_page).to.eql(1);",
+              "    pm.expect(jsonData.meta.per_page).to.eql(2);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/books?per_page=2&page=1",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "books"
+          ],
+          "query": [
+            {
+              "key": "per_page",
+              "value": "2"
+            },
+            {
+              "key": "page",
+              "value": "1"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "02 - Week 6 — Paginated Books (Page 2)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Page 2 has current_page 2 and prev link\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.meta.current_page).to.eql(2);",
+              "    pm.expect(jsonData.links.prev).to.not.be.null;",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/books?per_page=2&page=2",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "books"
+          ],
+          "query": [
+            {
+              "key": "per_page",
+              "value": "2"
+            },
+            {
+              "key": "page",
+              "value": "2"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "03 - Week 6 — Search Books (Clean)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Search results match Clean\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.data.length).to.be.above(0);",
+              "    pm.expect(jsonData.data[0].title).to.include(\"Clean\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/books?search=Clean",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "books"
+          ],
+          "query": [
+            {
+              "key": "search",
+              "value": "Clean"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "04 - Week 6 — Search Books by ISBN",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Search results match ISBN\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.data.length).to.be.above(0);",
+              "    pm.expect(jsonData.data[0].isbn).to.include(\"9780321\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/books?search=9780321",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "books"
+          ],
+          "query": [
+            {
+              "key": "search",
+              "value": "9780321"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "05 - Week 6 — Search Empty Books",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Empty search returns empty data array and total 0\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.data).to.be.an('array').that.is.empty;",
+              "    pm.expect(jsonData.meta.total).to.eql(0);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/books?search=tidak-ada-987654321",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "books"
+          ],
+          "query": [
+            {
+              "key": "search",
+              "value": "tidak-ada-987654321"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "06 - Week 6 — Sort Books Desc",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Results sorted descending by title\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.data.length).to.be.above(1);",
+              "    pm.expect(jsonData.data[0].title.localeCompare(jsonData.data[1].title)).to.be.at.least(0);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/books?sort=title&direction=desc&per_page=10",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "books"
+          ],
+          "query": [
+            {
+              "key": "sort",
+              "value": "title"
+            },
+            {
+              "key": "direction",
+              "value": "desc"
+            },
+            {
+              "key": "per_page",
+              "value": "10"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "07 - Week 6 — Sort Books Asc",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Results sorted ascending by title\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.data.length).to.be.above(1);",
+              "    pm.expect(jsonData.data[0].title.localeCompare(jsonData.data[1].title)).to.be.at.most(0);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/books?sort=title&direction=asc&per_page=10",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "books"
+          ],
+          "query": [
+            {
+              "key": "sort",
+              "value": "title"
+            },
+            {
+              "key": "direction",
+              "value": "asc"
+            },
+            {
+              "key": "per_page",
+              "value": "10"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "08 - Week 6 — Invalid Sort (422)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 422 Unprocessable Content\", function () {",
+              "    pm.response.to.have.status(422);",
+              "});",
+              "",
+              "pm.test(\"Validation error contains sort key\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('errors');",
+              "    pm.expect(jsonData.errors).to.have.property('sort');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/books?sort=password",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "books"
+          ],
+          "query": [
+            {
+              "key": "sort",
+              "value": "password"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "09 - Week 6 — Invalid Per Page (422)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 422 Unprocessable Content\", function () {",
+              "    pm.response.to.have.status(422);",
+              "});",
+              "",
+              "pm.test(\"Validation error contains per_page key\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('errors');",
+              "    pm.expect(jsonData.errors).to.have.property('per_page');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/books?per_page=100",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "books"
+          ],
+          "query": [
+            {
+              "key": "per_page",
+              "value": "100"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "10 - Week 6 — Combined Search Sort Pagination",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Pagination links retain query parameters\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.links.first).to.include('search=Code');",
+              "    pm.expect(jsonData.links.first).to.include('sort=title');",
+              "    pm.expect(jsonData.links.first).to.include('direction=asc');",
+              "    pm.expect(jsonData.links.first).to.include('per_page=2');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/books?search=Code&sort=title&direction=asc&per_page=2&page=1",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "books"
+          ],
+          "query": [
+            {
+              "key": "search",
+              "value": "Code"
+            },
+            {
+              "key": "sort",
+              "value": "title"
+            },
+            {
+              "key": "direction",
+              "value": "asc"
+            },
+            {
+              "key": "per_page",
+              "value": "2"
+            },
+            {
+              "key": "page",
+              "value": "1"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}
