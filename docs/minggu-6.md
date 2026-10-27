@@ -9,6 +9,7 @@
 - **Versi API:** `v1.3.0`  
 - **Base URL:** `http://127.0.0.1:8000/api` dan `http://127.0.0.1:8000/api/v1`  
 - **Repositori GitHub:** [https://github.com/202234010-tech/rivervigil-api](https://github.com/202234010-tech/rivervigil-api)  
+- **Tautan Commit Terkait:** [Commit `de567a0`](https://github.com/202234010-tech/rivervigil-api/commit/de567a0)  
 - **Postman Collection:** `docs/postman/week-06-pagination-filtering-sorting.postman_collection.json`  
 
 ---
