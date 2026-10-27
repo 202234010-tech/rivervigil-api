@@ -1,8 +1,8 @@
 {
   "info": {
-    "_postman_id": "f86b4321-4821-4d1a-8bb0-c11223344556",
-    "name": "Praktikum 6 — Endpoint Collection yang Dapat Dicari (Books API)",
-    "description": "Postman Collection resmi untuk Praktikum 6 — Endpoint Collection yang Dapat Dicari pada mata kuliah Manajemen Layanan Web.\n\nMenguji:\n1. Paginasi default dan custom per_page / page\n2. Pencarian pada kolom title dan isbn\n3. Pengurutan terarah (asc/desc) dengan allowlist kolom (id, title, isbn, created_at)\n4. Validasi query parameter (422 Unprocessable Content untuk sort dan per_page invalid)\n5. HATEOAS links dan metadata paginasi yang mempertahankan query string",
+    "_postman_id": "a91b2c3d-4e5f-6a7b-8c9d-0e1f2a3b4c5d",
+    "name": "Praktikum & Tugas 6 — Pagination, Filtering, and Sorting (RiverVigil API)",
+    "description": "Postman Collection resmi untuk Tugas 6 — Endpoint Collection yang Dapat Dicari pada mata kuliah Manajemen Layanan Web.\n\nMenguji Resource Utama Project Semester (Station) dan Resource Pendukung (Book):\n1. Default pagination\n2. Custom page dan per_page\n3. Search pada minimal dua field (name dan location)\n4. Sorting ascending dan descending dengan allowlist\n5. Kombinasi pagination + search + sorting (dengan preservasi query string pada links)\n6. Query validation yang menghasilkan 422 Unprocessable Content untuk input invalid",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -14,7 +14,7 @@
   ],
   "item": [
     {
-      "name": "01 - Week 6 — Paginated Books (Page 1)",
+      "name": "01 - Default Pagination (200 OK)",
       "event": [
         {
           "listen": "test",
@@ -24,13 +24,14 @@
               "    pm.response.to.have.status(200);",
               "});",
               "",
-              "pm.test(\"Response has data, links, and meta structure\", function () {",
-              "    var jsonData = pm.response.json();",
-              "    pm.expect(jsonData).to.have.property('data');",
-              "    pm.expect(jsonData).to.have.property('links');",
-              "    pm.expect(jsonData).to.have.property('meta');",
-              "    pm.expect(jsonData.meta.current_page).to.eql(1);",
-              "    pm.expect(jsonData.meta.per_page).to.eql(2);",
+              "pm.test(\"Response has success envelope and pagination metadata\", function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json.status).to.eql(\"success\");",
+              "    pm.expect(json).to.have.property(\"data\");",
+              "    pm.expect(json).to.have.property(\"links\");",
+              "    pm.expect(json).to.have.property(\"meta\");",
+              "    pm.expect(json.meta.current_page).to.eql(1);",
+              "    pm.expect(json.meta.total).to.be.at.least(1);",
               "});"
             ],
             "type": "text/javascript"
@@ -47,13 +48,59 @@
           }
         ],
         "url": {
-          "raw": "{{base_url}}/api/books?per_page=2&page=1",
+          "raw": "{{base_url}}/api/v1/stations",
           "host": [
             "{{base_url}}"
           ],
           "path": [
             "api",
-            "books"
+            "v1",
+            "stations"
+          ]
+        }
+      }
+    },
+    {
+      "name": "02 - Custom Pagination Page 1 (per_page=2)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Page 1 contains at most 2 items and valid next link\", function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json.data.length).to.be.at.most(2);",
+              "    pm.expect(json.meta.current_page).to.eql(1);",
+              "    pm.expect(json.meta.per_page).to.eql(2);",
+              "    pm.expect(json.links.next).to.not.be.null;",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/v1/stations?per_page=2&page=1",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "stations"
           ],
           "query": [
             {
@@ -69,7 +116,7 @@
       }
     },
     {
-      "name": "02 - Week 6 — Paginated Books (Page 2)",
+      "name": "03 - Custom Pagination Page 2 (per_page=2)",
       "event": [
         {
           "listen": "test",
@@ -79,10 +126,11 @@
               "    pm.response.to.have.status(200);",
               "});",
               "",
-              "pm.test(\"Page 2 has current_page 2 and prev link\", function () {",
-              "    var jsonData = pm.response.json();",
-              "    pm.expect(jsonData.meta.current_page).to.eql(2);",
-              "    pm.expect(jsonData.links.prev).to.not.be.null;",
+              "pm.test(\"Page 2 contains at most 2 items and valid prev link\", function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json.data.length).to.be.at.most(2);",
+              "    pm.expect(json.meta.current_page).to.eql(2);",
+              "    pm.expect(json.links.prev).to.not.be.null;",
               "});"
             ],
             "type": "text/javascript"
@@ -99,13 +147,14 @@
           }
         ],
         "url": {
-          "raw": "{{base_url}}/api/books?per_page=2&page=2",
+          "raw": "{{base_url}}/api/v1/stations?per_page=2&page=2",
           "host": [
             "{{base_url}}"
           ],
           "path": [
             "api",
-            "books"
+            "v1",
+            "stations"
           ],
           "query": [
             {
@@ -121,7 +170,7 @@
       }
     },
     {
-      "name": "03 - Week 6 — Search Books (Clean)",
+      "name": "04 - Search Field 1 Name (Bendung)",
       "event": [
         {
           "listen": "test",
@@ -131,10 +180,12 @@
               "    pm.response.to.have.status(200);",
               "});",
               "",
-              "pm.test(\"Search results match Clean\", function () {",
-              "    var jsonData = pm.response.json();",
-              "    pm.expect(jsonData.data.length).to.be.above(0);",
-              "    pm.expect(jsonData.data[0].title).to.include(\"Clean\");",
+              "pm.test(\"All search results match 'Bendung' on name\", function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json.data.length).to.be.above(0);",
+              "    json.data.forEach(function (station) {",
+              "        pm.expect(station.name.toLowerCase()).to.include(\"bendung\");",
+              "    });",
               "});"
             ],
             "type": "text/javascript"
@@ -151,25 +202,26 @@
           }
         ],
         "url": {
-          "raw": "{{base_url}}/api/books?search=Clean",
+          "raw": "{{base_url}}/api/v1/stations?search=Bendung",
           "host": [
             "{{base_url}}"
           ],
           "path": [
             "api",
-            "books"
+            "v1",
+            "stations"
           ],
           "query": [
             {
               "key": "search",
-              "value": "Clean"
+              "value": "Bendung"
             }
           ]
         }
       }
     },
     {
-      "name": "04 - Week 6 — Search Books by ISBN",
+      "name": "05 - Search Field 2 Location (Jakarta)",
       "event": [
         {
           "listen": "test",
@@ -179,10 +231,12 @@
               "    pm.response.to.have.status(200);",
               "});",
               "",
-              "pm.test(\"Search results match ISBN\", function () {",
-              "    var jsonData = pm.response.json();",
-              "    pm.expect(jsonData.data.length).to.be.above(0);",
-              "    pm.expect(jsonData.data[0].isbn).to.include(\"9780321\");",
+              "pm.test(\"All search results match 'Jakarta' on location\", function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json.data.length).to.be.above(0);",
+              "    json.data.forEach(function (station) {",
+              "        pm.expect(station.location.toLowerCase()).to.include(\"jakarta\");",
+              "    });",
               "});"
             ],
             "type": "text/javascript"
@@ -199,25 +253,26 @@
           }
         ],
         "url": {
-          "raw": "{{base_url}}/api/books?search=9780321",
+          "raw": "{{base_url}}/api/v1/stations?search=Jakarta",
           "host": [
             "{{base_url}}"
           ],
           "path": [
             "api",
-            "books"
+            "v1",
+            "stations"
           ],
           "query": [
             {
               "key": "search",
-              "value": "9780321"
+              "value": "Jakarta"
             }
           ]
         }
       }
     },
     {
-      "name": "05 - Week 6 — Search Empty Books",
+      "name": "06 - Search Empty Results (200 OK)",
       "event": [
         {
           "listen": "test",
@@ -228,9 +283,9 @@
               "});",
               "",
               "pm.test(\"Empty search returns empty data array and total 0\", function () {",
-              "    var jsonData = pm.response.json();",
-              "    pm.expect(jsonData.data).to.be.an('array').that.is.empty;",
-              "    pm.expect(jsonData.meta.total).to.eql(0);",
+              "    var json = pm.response.json();",
+              "    pm.expect(json.data).to.be.an(\"array\").that.is.empty;",
+              "    pm.expect(json.meta.total).to.eql(0);",
               "});"
             ],
             "type": "text/javascript"
@@ -247,25 +302,26 @@
           }
         ],
         "url": {
-          "raw": "{{base_url}}/api/books?search=tidak-ada-987654321",
+          "raw": "{{base_url}}/api/v1/stations?search=tidak-ada-stasiun",
           "host": [
             "{{base_url}}"
           ],
           "path": [
             "api",
-            "books"
+            "v1",
+            "stations"
           ],
           "query": [
             {
               "key": "search",
-              "value": "tidak-ada-987654321"
+              "value": "tidak-ada-stasiun"
             }
           ]
         }
       }
     },
     {
-      "name": "06 - Week 6 — Sort Books Desc",
+      "name": "07 - Sorting Ascending by Name",
       "event": [
         {
           "listen": "test",
@@ -275,10 +331,12 @@
               "    pm.response.to.have.status(200);",
               "});",
               "",
-              "pm.test(\"Results sorted descending by title\", function () {",
-              "    var jsonData = pm.response.json();",
-              "    pm.expect(jsonData.data.length).to.be.above(1);",
-              "    pm.expect(jsonData.data[0].title.localeCompare(jsonData.data[1].title)).to.be.at.least(0);",
+              "pm.test(\"Results sorted ascending A-Z by name\", function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json.data.length).to.be.above(1);",
+              "    for (var i = 0; i < json.data.length - 1; i++) {",
+              "        pm.expect(json.data[i].name.localeCompare(json.data[i+1].name)).to.be.at.most(0);",
+              "    }",
               "});"
             ],
             "type": "text/javascript"
@@ -295,18 +353,78 @@
           }
         ],
         "url": {
-          "raw": "{{base_url}}/api/books?sort=title&direction=desc&per_page=10",
+          "raw": "{{base_url}}/api/v1/stations?sort=name&direction=asc&per_page=10",
           "host": [
             "{{base_url}}"
           ],
           "path": [
             "api",
-            "books"
+            "v1",
+            "stations"
           ],
           "query": [
             {
               "key": "sort",
-              "value": "title"
+              "value": "name"
+            },
+            {
+              "key": "direction",
+              "value": "asc"
+            },
+            {
+              "key": "per_page",
+              "value": "10"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "08 - Sorting Descending by Name",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Results sorted descending Z-A by name\", function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json.data.length).to.be.above(1);",
+              "    for (var i = 0; i < json.data.length - 1; i++) {",
+              "        pm.expect(json.data[i].name.localeCompare(json.data[i+1].name)).to.be.at.least(0);",
+              "    }",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/v1/stations?sort=name&direction=desc&per_page=10",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "stations"
+          ],
+          "query": [
+            {
+              "key": "sort",
+              "value": "name"
             },
             {
               "key": "direction",
@@ -321,7 +439,7 @@
       }
     },
     {
-      "name": "07 - Week 6 — Sort Books Asc",
+      "name": "09 - Combined Pagination + Search + Sorting",
       "event": [
         {
           "listen": "test",
@@ -331,10 +449,12 @@
               "    pm.response.to.have.status(200);",
               "});",
               "",
-              "pm.test(\"Results sorted ascending by title\", function () {",
-              "    var jsonData = pm.response.json();",
-              "    pm.expect(jsonData.data.length).to.be.above(1);",
-              "    pm.expect(jsonData.data[0].title.localeCompare(jsonData.data[1].title)).to.be.at.most(0);",
+              "pm.test(\"Pagination links retain all query parameters\", function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json.links.first).to.include('search=Pos');",
+              "    pm.expect(json.links.first).to.include('sort=name');",
+              "    pm.expect(json.links.first).to.include('direction=asc');",
+              "    pm.expect(json.links.first).to.include('per_page=2');",
               "});"
             ],
             "type": "text/javascript"
@@ -351,176 +471,23 @@
           }
         ],
         "url": {
-          "raw": "{{base_url}}/api/books?sort=title&direction=asc&per_page=10",
+          "raw": "{{base_url}}/api/v1/stations?search=Pos&sort=name&direction=asc&per_page=2&page=1",
           "host": [
             "{{base_url}}"
           ],
           "path": [
             "api",
-            "books"
-          ],
-          "query": [
-            {
-              "key": "sort",
-              "value": "title"
-            },
-            {
-              "key": "direction",
-              "value": "asc"
-            },
-            {
-              "key": "per_page",
-              "value": "10"
-            }
-          ]
-        }
-      }
-    },
-    {
-      "name": "08 - Week 6 — Invalid Sort (422)",
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "exec": [
-              "pm.test(\"Status code is 422 Unprocessable Content\", function () {",
-              "    pm.response.to.have.status(422);",
-              "});",
-              "",
-              "pm.test(\"Validation error contains sort key\", function () {",
-              "    var jsonData = pm.response.json();",
-              "    pm.expect(jsonData).to.have.property('errors');",
-              "    pm.expect(jsonData.errors).to.have.property('sort');",
-              "});"
-            ],
-            "type": "text/javascript"
-          }
-        }
-      ],
-      "request": {
-        "method": "GET",
-        "header": [
-          {
-            "key": "Accept",
-            "value": "application/json",
-            "type": "text"
-          }
-        ],
-        "url": {
-          "raw": "{{base_url}}/api/books?sort=password",
-          "host": [
-            "{{base_url}}"
-          ],
-          "path": [
-            "api",
-            "books"
-          ],
-          "query": [
-            {
-              "key": "sort",
-              "value": "password"
-            }
-          ]
-        }
-      }
-    },
-    {
-      "name": "09 - Week 6 — Invalid Per Page (422)",
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "exec": [
-              "pm.test(\"Status code is 422 Unprocessable Content\", function () {",
-              "    pm.response.to.have.status(422);",
-              "});",
-              "",
-              "pm.test(\"Validation error contains per_page key\", function () {",
-              "    var jsonData = pm.response.json();",
-              "    pm.expect(jsonData).to.have.property('errors');",
-              "    pm.expect(jsonData.errors).to.have.property('per_page');",
-              "});"
-            ],
-            "type": "text/javascript"
-          }
-        }
-      ],
-      "request": {
-        "method": "GET",
-        "header": [
-          {
-            "key": "Accept",
-            "value": "application/json",
-            "type": "text"
-          }
-        ],
-        "url": {
-          "raw": "{{base_url}}/api/books?per_page=100",
-          "host": [
-            "{{base_url}}"
-          ],
-          "path": [
-            "api",
-            "books"
-          ],
-          "query": [
-            {
-              "key": "per_page",
-              "value": "100"
-            }
-          ]
-        }
-      }
-    },
-    {
-      "name": "10 - Week 6 — Combined Search Sort Pagination",
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "exec": [
-              "pm.test(\"Status code is 200 OK\", function () {",
-              "    pm.response.to.have.status(200);",
-              "});",
-              "",
-              "pm.test(\"Pagination links retain query parameters\", function () {",
-              "    var jsonData = pm.response.json();",
-              "    pm.expect(jsonData.links.first).to.include('search=Code');",
-              "    pm.expect(jsonData.links.first).to.include('sort=title');",
-              "    pm.expect(jsonData.links.first).to.include('direction=asc');",
-              "    pm.expect(jsonData.links.first).to.include('per_page=2');",
-              "});"
-            ],
-            "type": "text/javascript"
-          }
-        }
-      ],
-      "request": {
-        "method": "GET",
-        "header": [
-          {
-            "key": "Accept",
-            "value": "application/json",
-            "type": "text"
-          }
-        ],
-        "url": {
-          "raw": "{{base_url}}/api/books?search=Code&sort=title&direction=asc&per_page=2&page=1",
-          "host": [
-            "{{base_url}}"
-          ],
-          "path": [
-            "api",
-            "books"
+            "v1",
+            "stations"
           ],
           "query": [
             {
               "key": "search",
-              "value": "Code"
+              "value": "Pos"
             },
             {
               "key": "sort",
-              "value": "title"
+              "value": "name"
             },
             {
               "key": "direction",
@@ -533,6 +500,107 @@
             {
               "key": "page",
               "value": "1"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "10 - Invalid Sort Allowlist (422)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 422 Unprocessable Content\", function () {",
+              "    pm.response.to.have.status(422);",
+              "});",
+              "",
+              "pm.test(\"Error response matches standard error envelope\", function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json.status).to.eql(\"error\");",
+              "    pm.expect(json).to.have.property(\"errors\");",
+              "    var hasSortError = json.errors.some(function(err) { return err.field === 'sort'; });",
+              "    pm.expect(hasSortError).to.be.true;",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/v1/stations?sort=password",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "stations"
+          ],
+          "query": [
+            {
+              "key": "sort",
+              "value": "password"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "11 - Invalid Per Page Max Limit (422)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 422 Unprocessable Content\", function () {",
+              "    pm.response.to.have.status(422);",
+              "});",
+              "",
+              "pm.test(\"Error response has per_page validation failure\", function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json.status).to.eql(\"error\");",
+              "    var hasPerPageError = json.errors.some(function(err) { return err.field === 'per_page'; });",
+              "    pm.expect(hasPerPageError).to.be.true;",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/v1/stations?per_page=100",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "stations"
+          ],
+          "query": [
+            {
+              "key": "per_page",
+              "value": "100"
             }
           ]
         }

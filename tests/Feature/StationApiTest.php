@@ -243,4 +243,110 @@ class StationApiTest extends TestCase
                 'message' => "Stasiun pos pantau dengan ID 'STA-UNKNOWN' tidak ditemukan.",
             ]);
     }
+
+    public function test_can_paginate_stations_with_custom_per_page_and_page(): void
+    {
+        $response = $this->getJson('/api/stations?per_page=2&page=1');
+
+        $response->assertStatus(200)
+            ->assertJson([
+                'status' => 'success',
+                'meta' => [
+                    'current_page' => 1,
+                    'per_page' => 2,
+                    'last_page' => 3,
+                    'total_records' => 5,
+                ],
+            ]);
+
+        $this->assertCount(2, $response->json('data'));
+        $this->assertNotNull($response->json('links.next'));
+
+        $page2 = $this->getJson('/api/stations?per_page=2&page=2');
+        $page2->assertStatus(200)
+            ->assertJson([
+                'meta' => [
+                    'current_page' => 2,
+                ],
+            ]);
+        $this->assertCount(2, $page2->json('data'));
+        $this->assertNotNull($page2->json('links.prev'));
+    }
+
+    public function test_can_search_stations_by_name_and_location(): void
+    {
+        // Search by name
+        $nameSearch = $this->getJson('/api/stations?search=Bendung');
+        $nameSearch->assertStatus(200);
+        $this->assertEquals('STA-KATULAMPA', $nameSearch->json('data.0.id'));
+
+        // Search by location
+        $locationSearch = $this->getJson('/api/stations?search=Jakarta');
+        $locationSearch->assertStatus(200);
+        $this->assertCount(2, $locationSearch->json('data'));
+    }
+
+    public function test_can_sort_stations_ascending_and_descending(): void
+    {
+        $desc = $this->getJson('/api/stations?sort=name&direction=desc&per_page=10');
+        $desc->assertStatus(200);
+        $namesDesc = collect($desc->json('data'))->pluck('name')->toArray();
+        $sortedDesc = $namesDesc;
+        rsort($sortedDesc);
+        $this->assertEquals($sortedDesc, $namesDesc);
+
+        $asc = $this->getJson('/api/stations?sort=name&direction=asc&per_page=10');
+        $asc->assertStatus(200);
+        $namesAsc = collect($asc->json('data'))->pluck('name')->toArray();
+        $sortedAsc = $namesAsc;
+        sort($sortedAsc);
+        $this->assertEquals($sortedAsc, $namesAsc);
+    }
+
+    public function test_query_validation_fails_on_invalid_sort_with_422(): void
+    {
+        $response = $this->getJson('/api/stations?sort=password');
+
+        $response->assertStatus(422)
+            ->assertJson([
+                'status' => 'error',
+                'message' => 'Validasi query parameter gagal. Periksa kembali parameter yang dikirimkan.',
+            ])
+            ->assertJsonStructure([
+                'status',
+                'message',
+                'errors' => [
+                    '*' => ['field', 'issue'],
+                ],
+            ]);
+    }
+
+    public function test_query_validation_fails_on_invalid_per_page_with_422(): void
+    {
+        $response = $this->getJson('/api/stations?per_page=100');
+
+        $response->assertStatus(422)
+            ->assertJson([
+                'status' => 'error',
+            ]);
+    }
+
+    public function test_can_combine_search_sort_and_pagination_with_query_preserved(): void
+    {
+        $response = $this->getJson('/api/stations?search=Pos&sort=name&direction=asc&per_page=2&page=1');
+
+        $response->assertStatus(200)
+            ->assertJson([
+                'meta' => [
+                    'current_page' => 1,
+                    'per_page' => 2,
+                    'total_records' => 3,
+                ],
+            ]);
+
+        $this->assertStringContainsString('search=Pos', $response->json('links.first'));
+        $this->assertStringContainsString('sort=name', $response->json('links.first'));
+        $this->assertStringContainsString('direction=asc', $response->json('links.first'));
+        $this->assertStringContainsString('per_page=2', $response->json('links.first'));
+    }
 }
